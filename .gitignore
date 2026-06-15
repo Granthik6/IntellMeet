@@ -1,0 +1,22 @@
+# dependencies
+node_modules/
+
+# env files
+.env
+.env.*
+!.env.example
+
+# build
+dist/
+build/
+
+# logs
+*.log
+
+# cache
+.cache/
+.vite/
+
+# OS files
+.DS_Store
+Thumbs.db
