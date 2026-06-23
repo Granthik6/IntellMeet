@@ -1,6 +1,6 @@
 import { io, Socket } from 'socket.io-client';
 
-const socket: Socket = io('http://localhost:5000', {
+const socket: Socket = io('http://192.168.43.249:5000', {
   autoConnect: true,
   reconnection: true,
   reconnectionAttempts: 10,
