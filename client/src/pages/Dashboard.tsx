@@ -114,12 +114,13 @@ export default function Dashboard() {
             ) : (
               <div className="flex flex-col gap-3">
                 {recentMeetings.map((m) => (
-                  <div key={m._id} className="flex items-center gap-4 p-4 bg-surface-200 rounded-xl">
+                  <div key={m._id} onClick={() => navigate(`/meeting-summary/${m._id}`)}
+                    className="flex items-center gap-4 p-4 bg-surface-200 rounded-xl cursor-pointer hover:bg-surface-100 transition-all group">
                     <div className="w-10 h-10 rounded-xl bg-emerald-500/15 flex items-center justify-center">
                       <Video className="w-5 h-5 text-emerald-400" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-zinc-200 truncate">{m.title}</p>
+                      <p className="text-sm font-semibold text-zinc-200 truncate group-hover:text-primary-400 transition-colors">{m.title}</p>
                       <p className="text-xs text-zinc-500">
                         {m.duration ? `${Math.round(m.duration / 60)} min` : 'Completed'} · {m.participants?.length || 0} participants
                       </p>

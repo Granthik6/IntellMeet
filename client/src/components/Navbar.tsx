@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
 import { useNotifications, useMarkAllAsRead } from '@/hooks/useNotifications';
+import { useQueryClient } from '@tanstack/react-query';
+import socket from '@/socket';
+import { toast } from 'sonner';
 import { Bell, Search, Menu, X, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -11,6 +14,7 @@ interface NavbarProps {
 
 export default function Navbar({ onMenuToggle }: NavbarProps) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { user, logout } = useAuthStore();
   const { data: notifications } = useNotifications();
   const markAllRead = useMarkAllAsRead();
@@ -18,6 +22,18 @@ export default function Navbar({ onMenuToggle }: NavbarProps) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    socket.off('newNotification');
+    socket.on('newNotification', ({ notification }) => {
+      toast.info(notification.message);
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    });
+
+    return () => {
+      socket.off('newNotification');
+    };
+  }, [queryClient]);
 
   const unreadCount = notifications?.filter((n) => !n.read).length || 0;
 

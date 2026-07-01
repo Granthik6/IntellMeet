@@ -40,6 +40,8 @@ const io = new Server(server, {
   },
 });
 
+app.set("io", io);
+
 // ==================== INITIALIZE SERVICES ====================
 
 // Initialize Redis (with graceful fallback)
@@ -59,6 +61,7 @@ io.on("connection", (socket) => {
   // ── Register user for notifications ──
   socket.on("registerUser", ({ userId }) => {
     if (userId) {
+      socket.join(`user:${userId}`);
       userSockets[userId] = socket.id;
       socket.userId = userId;
     }
@@ -121,11 +124,40 @@ io.on("connection", (socket) => {
   });
 
   // ── Chat Messages ──
-  socket.on("sendMessage", ({ meetingId, sender, message }) => {
+  socket.on("sendMessage", async ({ meetingId, sender, message }) => {
     io.to(meetingId).emit("receiveMessage", {
       sender,
       message,
     });
+
+    try {
+      const mentionRegex = /@(\w+)/g;
+      let match;
+      const mentions = [];
+      while ((match = mentionRegex.exec(message)) !== null) {
+        mentions.push(match[1]);
+      }
+
+      if (mentions.length > 0) {
+        const User = require("./models/User");
+        const Notification = require("./models/Notification");
+
+        for (const username of mentions) {
+          // Find user by name (case-insensitive regex match)
+          const user = await User.findOne({ name: new RegExp(`^${username}$`, "i") });
+          if (user) {
+            const notifyText = `@${sender} mentioned you in chat: "${message}"`;
+            const notification = await Notification.create({
+              user: user._id,
+              message: notifyText,
+            });
+            io.to(`user:${user._id}`).emit("newNotification", { notification });
+          }
+        }
+      }
+    } catch (err) {
+      console.error("❌ Mention Notification Error:", err.message);
+    }
   });
 
   // ── Typing Indicator ──
@@ -206,12 +238,25 @@ io.on("connection", (socket) => {
   });
 
   // ── Live Transcript ──
-  socket.on("sendTranscript", ({ meetingId, speaker, text, timestamp }) => {
-    io.to(meetingId).emit("receiveTranscript", {
+  socket.on("sendTranscript", async ({ meetingId, speaker, text, timestamp }) => {
+    const entry = {
       speaker,
       text,
       timestamp: timestamp || new Date().toISOString(),
-    });
+    };
+
+    io.to(meetingId).emit("receiveTranscript", entry);
+
+    try {
+      if (meetingId) {
+        const Meeting = require("./models/Meeting");
+        await Meeting.findByIdAndUpdate(meetingId, {
+          $push: { transcript: entry },
+        });
+      }
+    } catch (err) {
+      console.error("❌ Live Transcript Save Error:", err.message);
+    }
   });
 
   // ── Meeting Lifecycle ──
@@ -366,3 +411,5 @@ server.listen(PORT, () => {
   console.log(`   Environment: ${process.env.NODE_ENV || "development"}`);
   console.log(`   Client URL: ${process.env.CLIENT_URL || "http://localhost:5173"}`);
 });
+
+// Nodemon trigger comment to reload newly created .env variables

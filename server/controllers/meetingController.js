@@ -198,24 +198,47 @@ const uploadRecording = async (req, res) => {
       readableStream.pipe(uploadStream);
     });
 
+    // Transcribe the video recording buffer if Whisper is available
+    let transcribedText = "";
+    if (process.env.OPENAI_API_KEY) {
+      try {
+        const { transcribeAudio } = require("../services/aiService");
+        transcribedText = await transcribeAudio(req.file.buffer);
+      } catch (err) {
+        console.warn("⚠️ Whisper automatic recording transcription failed:", err.message);
+      }
+    }
+
     // Update meeting with recording URL
-    const meeting = await Meeting.findByIdAndUpdate(
-      req.params.id,
-      { recording: uploadResult.secure_url },
-      { new: true }
-    );
+    const updateData = { recording: uploadResult.secure_url };
+    const meeting = await Meeting.findById(req.params.id);
 
     if (!meeting) {
       return res.status(404).json({ message: "Meeting not found" });
     }
 
+    if (transcribedText) {
+      meeting.transcript.push({
+        speaker: "Meeting Recording (AI)",
+        text: transcribedText,
+        timestamp: new Date(),
+      });
+      await meeting.save();
+    } else {
+      await Meeting.findByIdAndUpdate(req.params.id, updateData);
+    }
+
+    const updatedMeeting = await Meeting.findById(req.params.id);
+
     // Invalidate cache
     await invalidateMeetingCache(req.user.id);
 
     res.status(200).json({
-      message: "Recording uploaded successfully",
+      message: transcribedText 
+        ? "Recording uploaded and transcribed successfully" 
+        : "Recording uploaded successfully",
       recording: uploadResult.secure_url,
-      meeting,
+      meeting: updatedMeeting,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -225,14 +248,18 @@ const uploadRecording = async (req, res) => {
 // Delete Meeting
 const deleteMeeting = async (req, res) => {
   try {
-    const meeting = await Meeting.findOneAndDelete({
-      _id: req.params.id,
-      createdBy: req.user.id,
-    });
+    const meeting = await Meeting.findById(req.params.id);
 
     if (!meeting) {
       return res.status(404).json({ message: "Meeting not found" });
     }
+
+    // Allow deletion if the user is the creator OR is an admin
+    if (meeting.createdBy && meeting.createdBy.toString() !== req.user.id && req.user.role !== "admin") {
+      return res.status(403).json({ message: "You are not authorized to delete this meeting" });
+    }
+
+    await Meeting.findByIdAndDelete(req.params.id);
 
     // Invalidate cache
     await invalidateMeetingCache(req.user.id);

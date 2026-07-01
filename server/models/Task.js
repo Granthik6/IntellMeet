@@ -29,7 +29,7 @@ const taskSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["todo", "in-progress", "review", "done"],
+      enum: ["todo", "in-progress", "review", "done", "completed"],
       default: "todo",
     },
 
@@ -41,6 +41,11 @@ const taskSchema = new mongoose.Schema(
 
     dueDate: {
       type: Date,
+    },
+
+    team: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Team",
     },
 
     createdBy: {

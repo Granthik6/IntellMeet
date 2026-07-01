@@ -81,12 +81,18 @@ export interface Message {
 }
 
 // ===== Team Types =====
+export interface TeamMember {
+  user: User;
+  role: "owner" | "admin" | "member";
+  _id: string;
+}
+
 export interface Team {
   _id: string;
   name: string;
   description: string;
-  members: string[];
-  admin: string;
+  members: TeamMember[];
+  createdBy: any;
   createdAt: string;
   updatedAt: string;
 }
@@ -96,12 +102,13 @@ export interface Task {
   _id: string;
   title: string;
   description: string;
-  status: "todo" | "in-progress" | "completed";
-  priority: "low" | "medium" | "high";
-  assignee: string;
+  status: "todo" | "in-progress" | "review" | "done" | "completed";
+  priority: "low" | "medium" | "high" | "urgent";
+  assignee: any;
+  team?: any;
   dueDate?: string;
   meeting?: string;
-  createdBy: string;
+  createdBy: any;
   createdAt: string;
   updatedAt: string;
 }

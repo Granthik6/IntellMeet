@@ -51,7 +51,7 @@ export default function Login() {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = 'http://192.168.43.249:5000/api/auth/google';
+    window.location.href = `http://${window.location.hostname}:5000/api/auth/google`;
   };
 
   return (

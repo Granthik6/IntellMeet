@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API = axios.create({
-  baseURL: 'http://192.168.43.249:5000/api',
+  baseURL: `http://${window.location.hostname}:5000/api`,
 });
 
 // Track if we're currently refreshing
@@ -66,7 +66,7 @@ API.interceptors.response.use(
         }
 
         const response = await axios.post(
-          'http://localhost:5000/api/auth/refresh-token',
+          `http://${window.location.hostname}:5000/api/auth/refresh-token`,
           { refreshToken }
         );
 

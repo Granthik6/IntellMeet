@@ -19,6 +19,8 @@ import Teams from '@/pages/Teams';
 import Projects from '@/pages/Projects';
 import Analytics from '@/pages/Analytics';
 import MeetingHistory from '@/pages/MeetingHistory';
+import MeetingSummary from '@/pages/MeetingSummary';
+
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -40,7 +42,7 @@ function AppLayout() {
   }, [initialize]);
 
   const publicPaths = ['/', '/login', '/signup'];
-  const isMeetingRoom = location.pathname.startsWith('/meeting/');
+  const isMeetingRoom = location.pathname.startsWith('/meeting/') && !location.pathname.startsWith('/meeting-summary');
   const showLayout =
     isAuthenticated && !publicPaths.includes(location.pathname) && !isMeetingRoom;
 
@@ -72,6 +74,7 @@ function AppLayout() {
           <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
           <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
           <Route path="/meeting-history" element={<ProtectedRoute><MeetingHistory /></ProtectedRoute>} />
+          <Route path="/meeting-summary/:id" element={<ProtectedRoute><MeetingSummary /></ProtectedRoute>} />
         </Routes>
       </div>
 

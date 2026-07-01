@@ -12,6 +12,7 @@ const {
   getProfile,
   updateProfile,
   googleCallback,
+  getUsers,
 } = require("../controllers/authController");
 
 // Public routes
@@ -23,6 +24,7 @@ router.post("/refresh-token", refreshTokenHandler);
 router.post("/logout", authMiddleware, logout);
 router.get("/profile", authMiddleware, getProfile);
 router.put("/profile", authMiddleware, upload.single("avatar"), updateProfile);
+router.get("/users", authMiddleware, getUsers);
 
 // Google OAuth routes (only active when credentials are configured)
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {

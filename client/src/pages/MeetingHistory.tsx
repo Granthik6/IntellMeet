@@ -1,7 +1,9 @@
 import { useMeetings } from '@/hooks/useMeetings';
+import { useNavigate } from 'react-router-dom';
 import { Video, Clock, Users, FileText, Loader2, Calendar, Download } from 'lucide-react';
 
 export default function MeetingHistory() {
+  const navigate = useNavigate();
   const { data: meetings, isLoading } = useMeetings();
   const completed = meetings?.filter((m) => m.status === 'completed') || [];
 
@@ -47,13 +49,19 @@ export default function MeetingHistory() {
                       {m.transcript?.length > 0 && <span className="flex items-center gap-1"><FileText className="w-3.5 h-3.5" /> {m.transcript.length} transcript entries</span>}
                     </div>
 
-                    {/* Recording */}
-                    {m.recording && (
-                      <a href={m.recording} target="_blank" rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-3 py-2 bg-primary-500/10 hover:bg-primary-500/20 border border-primary-500/20 text-primary-400 text-xs font-medium rounded-lg transition-colors">
-                        <Download className="w-3.5 h-3.5" /> View Recording
-                      </a>
-                    )}
+                    {/* Dashboard & Recording Link */}
+                    <div className="flex flex-wrap gap-2">
+                      <button onClick={() => navigate(`/meeting-summary/${m._id}`)}
+                        className="inline-flex items-center gap-2 px-3 py-2 bg-primary-500 hover:bg-primary-600 text-white text-xs font-semibold rounded-lg transition-colors">
+                        View Summary Dashboard
+                      </button>
+                      {m.recording && (
+                        <a href={m.recording} target="_blank" rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-3 py-2 bg-surface-200 hover:bg-surface-100 border border-zinc-800 text-zinc-350 text-xs font-medium rounded-lg transition-colors">
+                          <Download className="w-3.5 h-3.5" /> View Recording
+                        </a>
+                      )}
+                    </div>
 
                     {/* Summary */}
                     {m.summary && (

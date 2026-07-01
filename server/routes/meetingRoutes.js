@@ -29,7 +29,7 @@ router.post("/:id/transcript", authMiddleware, addTranscript);
 // Recording upload (uses memory storage for Cloudinary stream upload)
 router.post("/:id/recording", authMiddleware, uploadMiddleware.single("recording"), uploadRecording);
 
-// Admin-only: delete meeting
-router.delete("/:id", authMiddleware, adminMiddleware, deleteMeeting);
+// Delete meeting
+router.delete("/:id", authMiddleware, deleteMeeting);
 
 module.exports = router;
