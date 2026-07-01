@@ -22,7 +22,7 @@ export default function MeetingRoom() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const { participantStates } = useMeetingStore();
-  const { data: meeting, isLoading } = useMeeting(id);
+  const { data: meeting, isLoading, error } = useMeeting(id);
   const updateStatus = useUpdateMeetingStatus();
 
   const [participants, setParticipants] = useState<Participant[]>([]);
@@ -71,6 +71,25 @@ export default function MeetingRoom() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-surface-600">
         <Loader2 className="w-8 h-8 animate-spin text-primary-400" />
+      </div>
+    );
+  }
+
+  const errResponse = error as any;
+  const errorMessage = errResponse?.response?.data?.message;
+
+  if (error || !meeting || meeting.status === 'cancelled') {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-surface-600 p-6 text-center">
+        <div className="w-full max-w-md bg-surface-300 border border-zinc-800 rounded-2xl p-8 animate-scale-in">
+          <h2 className="text-xl font-bold text-red-400 mb-2">Cannot Join Meeting</h2>
+          <p className="text-sm text-zinc-500 mb-6 font-medium">
+            {errorMessage || (meeting?.status === 'cancelled' ? 'This meeting has been cancelled by the host.' : 'Meeting not found or has been deleted.')}
+          </p>
+          <button onClick={() => navigate('/meetings')} className="px-5 py-2.5 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-lg text-sm">
+            Back to Meetings
+          </button>
+        </div>
       </div>
     );
   }

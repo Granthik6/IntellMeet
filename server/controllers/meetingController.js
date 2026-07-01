@@ -64,6 +64,10 @@ const getMeetingById = async (req, res) => {
       return res.status(404).json({ message: "Meeting not found" });
     }
 
+    if (meeting.status === "cancelled") {
+      return res.status(400).json({ message: "This meeting has been cancelled by the host" });
+    }
+
     res.status(200).json(meeting);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -79,6 +83,10 @@ const getMeetingByCode = async (req, res) => {
 
     if (!meeting) {
       return res.status(404).json({ message: "Meeting not found with this code" });
+    }
+
+    if (meeting.status === "cancelled") {
+      return res.status(400).json({ message: "This meeting has been cancelled by the host" });
     }
 
     res.status(200).json(meeting);
